@@ -1,12 +1,11 @@
-var totalCount = dataOrig.length,
-  combinators = ['carat','price','depth'],
+var combinators = ['carat','price','depth'],
   dataSetproperty = 'cut',
-  width = 500,
+  width = 600,
   height = 250;
 
 
-//truncate the original data to a reduced state.
-data = dataOrig.slice(0,totalCount);
+//truncate the original data to a reduced state(if required).
+data = dataOrig;
 // create a new fusion chart instance with the given configuration(config).
 function createInstance(config) {
   return new FusionCharts(config);
@@ -39,6 +38,7 @@ function createScatterMatrix(combinators, dataSetproperty) {
     parentContainer = "chartContainer";
   //sets the child generator to generate child of the chartContainer as div elements
   generateChildDOM = generateChildDOM(parentContainer, "span");
+  getAxisName = getAxisName();
   for (i = 0; i < dimension; i += 1) {
       row = (matrix[i] = []);
       xAxisName = combinators[i];
@@ -65,20 +65,32 @@ function createScatterMatrix(combinators, dataSetproperty) {
     //retruns the entire matrix of the different instances of fusion charts class.
     return matrix;    
 }
+//get proper axis name with dimensions
+function getAxisName() {
+  var nameSpace = {
+    'carat': 'Carat(in ct.)',
+    'price': 'Price(in USD)',
+    'depth': 'Depth(in mm)'
+  };
+  return function (name) {
+    return nameSpace[name];
+  }
+}
 //takes the properties as parameters and generate the entire json to be used for Fusion charts object.
 function generateJSON(xAxis, yAxis, dataSetType) {
     var dataSet = {},
       json = {
         "chart": {
-          "xAxisName": xAxis,
-          "yAxisName": yAxis,
+          "xAxisName": getAxisName(xAxis),
+          "yAxisName": getAxisName(yAxis),
           "showLegend": "1",
           "showBorder": "0",
           "bgcolor": "#ffffff",
           "canvasBgColor": "#ffffff",
           "showAxisLines": "1",
           "yAxisNameFontBold": "0",
-          "xAxisNameFontBold": "0"
+          "xAxisNameFontBold": "0",
+          "plotToolText": "<b>Cut</b>: $seriesname <br><b>$xAxisName: </b>$xValue <br><b>$yAxisName </b>$yValue" 
         },
         "dataset": [] 
       },
@@ -93,10 +105,11 @@ function generateJSON(xAxis, yAxis, dataSetType) {
       temp = dataSet[type] || (dataSet[type] = {});
       temp.seriesname || (temp["seriesname"] = type);
       temp.data || (temp.data = []);
+      temp.alpha || (temp.alpha = "70");
       temp.data.push({
         x: unit[xAxis],
         y: unit[yAxis]
-        //todo: set level tooltext.
+        // tooltext: "carat: "+unit["carat"] + "<br>Cut: " + unit["cut"] + "<br>Color: " + unit["color"] + "<br>Clarity: " + unit["clarity"] + "<br>Depth: " + unit["depth"] + "<br><b>Price:</b> " + unit["price"]
       });
     }
     //modify to the required dataset structure.
